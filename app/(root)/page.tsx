@@ -1,7 +1,7 @@
 import InterviewCard from "@/components/InterviewCard";
 import { Button } from "@/components/ui/button";
 import { dummyInterviews } from "@/constants";
-import { isAuthenticated } from "@/lib/actions/auth.action";
+import { getCurrentUser, getInterviewByUserId, getLatestInterview, isAuthenticated } from "@/lib/actions/auth.action";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -11,6 +11,20 @@ const page = async () => {
   // memeriksa apakah user sudah login
   const isUserAuthenticated = await isAuthenticated();
   if (!isUserAuthenticated) redirect("/sign-in");
+
+  // get interview by specific user and get latest interview with parallel query
+  const user = await getCurrentUser();
+
+  const [userInterviews, latestInterviews] = await Promise.all([
+    await getInterviewByUserId(user?.id!),
+    await getLatestInterview({
+      userId: user?.id!,
+    }),
+  ]);
+
+  // cek apakah user sudah pernah mengambil interview
+  const hasPastInterviews = userInterviews?.length > 0;
+  const hasUpcomingInterviews = latestInterviews?.length > 0;
   return (
     <>
       <section className="card-cta">
@@ -26,21 +40,12 @@ const page = async () => {
 
       <section className="flex flex-col gap-6 mt-8">
         <h2>Interview Milikmu</h2>
-        <div className="interviews-section">
-          {dummyInterviews.map((interview) => (
-            <InterviewCard {...interview} key={interview.id} />
-          ))}
-          {/* <p>Kamu belum mengambil interview apapun</p> */}
-        </div>
+        <div className="interviews-section">{hasPastInterviews ? userInterviews?.map((interview) => <InterviewCard {...interview} key={interview.id} />) : <p>Kamu belum mengambil interview apapun</p>}</div>
       </section>
 
       <section className="flex flex-col gap-6 mt-8">
         <h2>Ambil Interview</h2>
-        <div className="interviews-section">
-          {dummyInterviews.map((interview) => (
-            <InterviewCard {...interview} key={interview.id} />
-          ))}
-        </div>
+        <div className="interviews-section">{hasUpcomingInterviews ? latestInterviews?.map((interview) => <InterviewCard {...interview} key={interview.id} />) : <p>Tidak ada interview yang tersedia</p>}</div>
       </section>
     </>
   );
