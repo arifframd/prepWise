@@ -1,7 +1,7 @@
 import InterviewCard from "@/components/InterviewCard";
 import { Button } from "@/components/ui/button";
-import { dummyInterviews } from "@/constants";
-import { getCurrentUser, getInterviewByUserId, getLatestInterview, isAuthenticated } from "@/lib/actions/auth.action";
+import { getCurrentUser, isAuthenticated } from "@/lib/actions/auth.action";
+import { getInterviewByUserId, getLatestInterview } from "@/lib/actions/general.action";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";

@@ -114,22 +114,3 @@ export async function isAuthenticated() {
 
   return !!authUser; // return true jika user terautentikasi, false jika tidak
 }
-
-export async function getInterviewByUserId(userId: string): Promise<Interview[] | null> {
-  // get all interviews by user id
-  const interviews = await db.collection("interviews").where("userId", "==", userId).orderBy("createdAt", "desc").get();
-  return interviews.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as Interview[]; // return interviews data
-}
-
-export async function getLatestInterview(params: GetLatestInterviewsParams): Promise<Interview[] | null> {
-  const { userId, limit = 20 } = params;
-
-  const interviews = await db.collection("interviews").where("finalized", "==", true).where("userId", "!=", userId).orderBy("createdAt", "desc").limit(limit).get();
-  return interviews.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as Interview[]; // return interviews data
-}
