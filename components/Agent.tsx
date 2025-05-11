@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { vapi } from "@/lib/vapi.sdk";
 import { interviewer } from "@/constants";
+import { createFeedback } from "@/lib/actions/general.action";
 
 enum CallStatus {
   INACTIVE = "INACTIVE",
@@ -29,8 +30,10 @@ const Agent = ({ userName, userId, type, interviewId, questions }: AgentProps) =
     const onCallEnd = () => setCallStatus(CallStatus.FINISHED);
 
     const onMessage = (message: Message) => {
+      console.log("message: ", message);
       if (message.type === "transcript" && message.transcriptType === "final") {
         const newMessage = { role: message.role, content: message.transcript };
+        console.log("message: ", newMessage);
         setMessages((prev) => [...prev, newMessage]);
       }
     };
@@ -66,10 +69,13 @@ const Agent = ({ userName, userId, type, interviewId, questions }: AgentProps) =
 
     // TODO: implementasi generate feedback
 
-    const { success, id } = {
-      success: true,
-      id: "feedback-id",
-    };
+    const { success, feedbackId: id } =
+      // { success: true, feedbackId: "feedback-id" };
+      await createFeedback({
+        interviewId: interviewId!,
+        userId: userId!,
+        transcript: messages,
+      });
     if (success && id) {
       router.push(`/interview/${interviewId}/feedback`);
     } else {
@@ -101,6 +107,7 @@ const Agent = ({ userName, userId, type, interviewId, questions }: AgentProps) =
           },
         });
       } else {
+        // jika type === 'interview' kita akan mengirimkan questions dan agent vapi nya berbeda dari yang generate
         let formattedQuestions = "";
         if (questions) {
           formattedQuestions = questions.map((question) => `- ${question}`).join("\n");
